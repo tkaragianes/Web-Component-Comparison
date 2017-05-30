@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Web Component Comparison: Vanilla Web Component</title>
+  </head>
+  <body style="width: 100vw; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; background-color: #0a3252;">
+    <point-of-interest position="left">
+      <h2 slot="title">Hello World</h2>
+      <p slot="details">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut la.</p>
+    </point-of-interest>
+
+    <template id="point-of-interest-template">
+      <style>
+        :host {
+          display: block;
+          position: relative;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          /*contain: content; /* Boom. CSS containment FTW. */*/
+        }
+        /* Pulsing button outline */
+        :host::after {
+          content: '';
+          position: absolute;
+          z-index: 1;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          border-radius: inherit;
+          background-color: transparent;
+          /*-webkit-animation: cd-pulse 2s infinite;
+          -moz-animation: cd-pulse 2s infinite;*/
+          animation: cd-pulse 2s infinite;
+        }
+        /*@-webkit-keyframes cd-pulse {
+          0% {
+            -webkit-transform: scale(1);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          50% {
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          100% {
+            -webkit-transform: scale(1.6);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0);
+          }
+        }
+        @-moz-keyframes cd-pulse {
+          0% {
+            -moz-transform: scale(1);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          50% {
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          100% {
+            -moz-transform: scale(1.6);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0);
+          }
+        }*/
+        @keyframes cd-pulse {
+          0% {
+            -webkit-transform: scale(1);
+            -moz-transform: scale(1);
+            -ms-transform: scale(1);
+            -o-transform: scale(1);
+            transform: scale(1);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          50% {
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0.8);
+          }
+          100% {
+            -webkit-transform: scale(1.6);
+            -moz-transform: scale(1.6);
+            -ms-transform: scale(1.6);
+            -o-transform: scale(1.6);
+            transform: scale(1.6);
+            box-shadow: inset 0 0 1px 1px rgba(217, 83, 83, 0);
+          }
+        }
+
+        /* Button styling */
+        a {
+          /*background-color: #c0392b;*/
+          position: relative;
+          z-index: 2;
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: inherit;
+          background: #d95353;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          -webkit-transition: background-color 0.2s;
+          -moz-transition: background-color 0.2s;
+          transition: background-color 0.2s;
+
+          display: inline-block;
+          overflow: hidden;
+          text-indent: 100%;
+          white-space: nowrap;
+        }
+        /* Generate button icon using pseudo-elements */
+        a::after, a:before {
+          /* rotating plus icon */
+          content: '';
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          bottom: auto;
+          right: auto;
+          -webkit-transform: translateX(-50%) translateY(-50%);
+          -moz-transform: translateX(-50%) translateY(-50%);
+          -ms-transform: translateX(-50%) translateY(-50%);
+          -o-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+          background-color: white;
+          -webkit-transition-property: -webkit-transform;
+          -moz-transition-property: -moz-transform;
+          transition-property: transform;
+          -webkit-transition-duration: 0.2s;
+          -moz-transition-duration: 0.2s;
+          transition-duration: 0.2s;
+        }
+        a::after {
+          height: 3%;
+          width: 30%;
+        }
+        a::before {
+          height: 30%;
+          width: 3%;
+        }
+
+        /* Rotate button icon on activation */
+        :host([active]) a::after, :host([active]) a::before {
+          -webkit-transform: translateX(-50%) translateY(-50%) rotate(135deg);
+          -moz-transform: translateX(-50%) translateY(-50%) rotate(135deg);
+          -ms-transform: translateX(-50%) translateY(-50%) rotate(135deg);
+          -o-transform: translateX(-50%) translateY(-50%) rotate(135deg);
+          transform: translateX(-50%) translateY(-50%) rotate(135deg);
+        }
+
+        /* Style button for opened state after first toggle */
+        :host([opened]) a, :host([active]) a {
+          background-color: #475f74;
+        }
+        :host([opened])::after, :host([active])::after {
+          /* pulse effect inactive on visited elements */
+          display: none;
+        }
+
+        /* Style popout card more info thingy */
+        .info {
+          position: absolute;
+          width: 220px;
+          max-height: 240px;
+          padding: 1em;
+          line-height: 1.4;
+          border-radius: 0.25em;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+          text-align: left;
+          background-color: rgba(255, 255, 255, 0.95);
+          visibility: hidden;
+          opacity: 0;
+        }
+        .info ::slotted([slot="title"]) {
+          font-family: system, sans-serif;
+          margin: 0;
+          font-size: 20px;
+          font-size: 1.25rem;
+        }
+        .info ::slotted([slot="details"]) {
+          font-family: system, sans-serif;
+          font-size: 14px;
+          font-size: 0.875rem;
+          margin: 0;
+        }
+        /* Add triangle indicating popout origin with psuedo elements*/
+        .info::before {
+          content: '';
+          display: block;
+          position: absolute;
+          height: 0;
+          width: 0;
+          border: 8px solid transparent;
+        }
+
+        /* When activated, make popout info visible and transition it in*/
+        :host([active]) .info {
+          visibility: visible;
+          opacity: 1;
+          /*-webkit-transform: scale(1);
+          -moz-transform: scale(1);
+          -ms-transform: scale(1);
+          -o-transform: scale(1);
+          transform: scale(1);*/
+          -webkit-transition: opacity 0.3s 0s, visibility 0s 0s, -webkit-transform 0.3s 0s, top 0.3s 0s, bottom 0.3s 0s, left 0.3s 0s, right 0.3s 0s;
+          -moz-transition: opacity 0.3s 0s, visibility 0s 0s, -moz-transform 0.3s 0s, top 0.3s 0s, bottom 0.3s 0s, left 0.3s 0s, right 0.3s 0s;
+          transition: opacity 0.3s 0s, visibility 0s 0s, transform 0.3s 0s, top 0.3s 0s, bottom 0.3s 0s, left 0.3s 0s, right 0.3s 0s;
+        }
+
+        /* Styles for popout position @ bottom */
+        :host([position="bottom"]) .info {
+          top: 140%;
+          left: 50%;
+          right: auto;
+          -webkit-transform: translateX(-50%);
+          -moz-transform: translateX(-50%);
+          -ms-transform: translateX(-50%);
+          -o-transform: translateX(-50%);
+          transform: translateX(-50%);
+        }
+        :host([position="bottom"]) .info::before {
+          border-bottom-color: rgba(255, 255, 255, 0.95);
+          bottom: 100%;
+          left: 50%;
+          right: auto;
+          -webkit-transform: translateX(-50%);
+          -moz-transform: translateX(-50%);
+          -ms-transform: translateX(-50%);
+          -o-transform: translateX(-50%);
+          transform: translateX(-50%);
+        }
+
+        /* Styles for popout position @ top */
+        :host([position="top"]) .info {
+          bottom: 140%;
+          left: 50%;
+          right: auto;
+          -webkit-transform: translateX(-50%);
+          -moz-transform: translateX(-50%);
+          -ms-transform: translateX(-50%);
+          -o-transform: translateX(-50%);
+          transform: translateX(-50%);
+        }
+        :host([position="top"]) .info::before {
+          border-top-color: rgba(255, 255, 255, 0.95);
+          top: 100%;
+          left: 50%;
+          right: auto;
+          -webkit-transform: translateX(-50%);
+          -moz-transform: translateX(-50%);
+          -ms-transform: translateX(-50%);
+          -o-transform: translateX(-50%);
+          transform: translateX(-50%);
+        }
+
+        /* Styles for popout position @ left */
+        :host([position="left"]) .info {
+          right: 140%;
+          top: 50%;
+          bottom: auto;
+          -webkit-transform: translateY(-50%);
+          -moz-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          -o-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+        :host([position="left"]) .info::before {
+          border-left-color: rgba(255, 255, 255, 0.95);
+          left: 100%;
+          top: 50%;
+          right: auto;
+          -webkit-transform: translateY(-50%);
+          -moz-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          -o-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+
+        /* Styles for popout position @ right */
+        :host([position="right"]) .info {
+          left: 140%;
+          top: 50%;
+          bottom: auto;
+          -webkit-transform: translateY(-50%);
+          -moz-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          -o-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+        :host([position="right"]) .info::before {
+          border-right-color: rgba(255, 255, 255, 0.95);
+          right: 100%;
+          top: 50%;
+          bottom: auto;
+          -webkit-transform: translateY(-50%);
+          -moz-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          -o-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+
+      </style> <!-- look ma, scoped styles -->
+      <a class="toggle-button" href="#">Toggle Info</a>
+        <div class="info">
+          <slot name="title"></slot>
+          <slot name="details"></slot>
+          <!-- <h2>Title</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil facere, repudiandae dolores assumenda. Quasi, in delectus nobis cum consectetur! Autem recusandae repudiandae perferendis alias beatae velit sint earum optio. Voluptas.</p> -->
+          <!-- <a href="#0" class="cd-close-info cd-img-replace">Close</a> -->
+      </slot>
+    </template>
+
+    <script>
+      class PointOfInterest extends HTMLElement {
+        constructor() {
+          super();
+
+          // Use ShadowDOM and clone contents from template (rather than inline)
+          let shadowRoot = this.attachShadow({mode: 'open'});
+          const t = document.querySelector('#point-of-interest-template');
+          const instance = t.content.cloneNode(true);
+          shadowRoot.appendChild(instance);
+
+          //Set default for position to bottom if attribute isn't provided
+          if(!this.hasAttribute("position")) {
+            this.position = "bottom";
+          }
+
+          shadowRoot.querySelector(".toggle-button").addEventListener('click', event => {
+            // Don't toggle the drawer if it's disabled.
+            if (this.disabled) {
+              return;
+            }
+            this._toggle();
+          });
+        }
+
+        get active() {
+          return this.hasAttribute('active');
+        }
+
+        set active(value) {
+          if (value) {
+            this.setAttribute('active', '');
+          } else {
+            this.removeAttribute('active');
+          }
+        }
+
+        get opened() {
+          return this.hasAttribute('opened');
+        }
+
+        set opened(value) {
+          if (value) {
+            this.setAttribute('opened', '');
+          } else {
+            this.removeAttribute('opened');
+          }
+        }
+
+        get position() {
+          if (this.hasAttribute('position')) {
+            return this.getAttribute('position');
+          }
+        }
+
+        set position(value) {
+          if (value) {
+            this.setAttribute('position', value);
+          } else {
+            this.setAttribute('position', 'bottom');
+          }
+        }
+
+        _toggle() {
+          if(!this.opened) {
+            this.opened = true;
+          }
+          if(!this.active) {
+            this.active = true;
+          }
+          else {
+            this.active = false;
+          }
+
+        }
+
+      }
+      window.customElements.define('point-of-interest', PointOfInterest);
+
+    </script>
+  </body>
+</html>
